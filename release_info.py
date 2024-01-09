@@ -7,6 +7,18 @@ TODO
 - [ ] document
 - [ ] run locally for a bit before automating updates of pysal.github.io
 
+Notes
+-----
+This polls all pysal packages to identify the date of the latest
+release.
+
+The last releast date for the news site is also determined.
+
+Any package with a release date after the date of the last news site
+release is identified, and a news entry is created for the
+pysal.org/news page.
+
+The markdown file with the entry is created locally.
 """
 
 import pickle
@@ -36,9 +48,7 @@ packages = [
 ]
 
 
-def get_latest_commit_date(
-    repo_owner="pysal", repo_name="pysal.github.io", github_token=None
-):
+def get_latest_commit_date(repo_owner="pysal", repo_name="pysal.github.io"):
     """Determine the date of the latest commit for a github repository.
 
     Arguments
@@ -71,7 +81,8 @@ def get_latest_commit_date(
 def get_latest_github_release(repo_owner, repo_name):
     """Get information about latest release of a package."""
 
-    url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/latest"
+    url = f"https://api.github.com/repos/{repo_owner}/{repo_name}"
+    url = f"{url}/releases/latest"
 
     # Send an HTTP GET request to the API
     response = requests.get(url)
@@ -87,7 +98,8 @@ def get_latest_github_release(repo_owner, repo_name):
         return latest_version, published_at
     else:
         # If the request was not successful, print an error message
-        print(f"Failed to fetch the latest release for {repo_owner}/{repo_name}.")
+        msg = "Failed to fetch the latest release for"
+        print(f"{msg} {repo_owner}/{repo_name}.")
         return None
 
 
@@ -126,7 +138,23 @@ def load_dict_from_pickle(filename="info.p"):
 
 
 def create_release_note(package, info):
-    """Create the release note markdown file for a package."""
+    """Create the release note markdown file for a package.
+
+    Parameters
+    ----------
+    package: str
+      package name
+
+    info: dict
+      information on package release and tags
+
+    Returns
+    -------
+    None
+
+    This will create a markdown file with the release notes.
+
+    """
     otag, _date = info[package]
     tag = otag.replace("v", "")
     front = _date.split("T")[0]
@@ -143,4 +171,16 @@ def create_release_note(package, info):
     lines.append(f'year: "{year}"')
     lines.append(f'link: "{url}"')
     lines.append("---")
-    return "\n".join(lines)
+    content = "\n".join(lines)
+    file_name = f"{package}_{tag}.md"
+    with open(file_name, "w") as out_file:
+        out_file.write(content)
+
+
+if __name__ == "__main__":
+    pkgs_to_update = update_needed()
+    if pkgs_to_update:
+        info = load_dict_from_pickle()
+        for pkg in pkgs_to_update:
+            print(pkg)
+            create_release_note(pkg, info)
