@@ -139,6 +139,12 @@ def load_dict_from_pickle(filename="info.p"):
         return None
 
 
+def write_release_note(content, package, tag, dir="news"):
+    file_name = f"{dir}/{package}_{tag}.md"
+    with open(file_name, "w") as out_file:
+        out_file.write(content)
+
+
 def create_release_note(package, info):
     """Create the release note markdown file for a package.
 
@@ -174,9 +180,7 @@ def create_release_note(package, info):
     lines.append(f'link: "{url}"')
     lines.append("---")
     content = "\n".join(lines)
-    file_name = f"news/{package}_{tag}.md"
-    with open(file_name, "w") as out_file:
-        out_file.write(content)
+    write_release_note(content, package, tag)
 
 
 if __name__ == "__main__":
