@@ -1,9 +1,9 @@
+#!/usr/bin/env python3
 """
 Bot for updating pysal news
 
 TODO
-- [ ] add github token
-- [ ] hook up to crontab for personal use
+- [x] hook up to crontab for personal use
 - [ ] document
 - [ ] run locally for a bit before automating updates of pysal.github.io
 
@@ -13,7 +13,7 @@ This polls all pysal packages to identify the date of the latest
 release.
 
 The last releast date for the news site is also determined.
-
+n
 Any package with a release date after the date of the last news site
 release is identified, and a news entry is created for the
 pysal.org/news page.
@@ -113,7 +113,9 @@ def get_release_dates(packages=packages):
 
 
 def update_needed(file_name="info.p"):
-    """Check if any packages have been released after latest update of news."""
+    """Check if any packages have been released after latest update of
+    news."""
+    get_release_dates()
     info = pickle.load(open(file_name, "rb"))
     news_date = get_latest_commit_date()
     updates = []
@@ -172,7 +174,7 @@ def create_release_note(package, info):
     lines.append(f'link: "{url}"')
     lines.append("---")
     content = "\n".join(lines)
-    file_name = f"{package}_{tag}.md"
+    file_name = f"news/{package}_{tag}.md"
     with open(file_name, "w") as out_file:
         out_file.write(content)
 
